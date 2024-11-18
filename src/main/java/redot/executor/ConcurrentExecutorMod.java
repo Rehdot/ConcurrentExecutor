@@ -21,7 +21,7 @@ public class ConcurrentExecutorMod implements ModInitializer {
 		ConcurrentExecutor.getInstance().consume(executor -> {
 			executor.getLogger().info("Initialized");
 			executor.setScreen(new ExecutorScreen("Concurrent Executor"));
-			executor.updateClasspath();
+			executor.updateClassPath();
 		});
 		ClientCommandRegistrationCallback.EVENT.register(this::registerCommand);
 	}

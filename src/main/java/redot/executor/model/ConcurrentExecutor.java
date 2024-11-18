@@ -117,16 +117,14 @@ public class ConcurrentExecutor {
         return stringWriter.toString();
     }
 
-    public void updateClasspath() {
-        try { // add mod jar to classpath
-            URL url = this.getURLFromObject(this);
-            this.addClassPathReference(url);
-        } catch (URISyntaxException exception) {
-            this.logger.error(exception.getMessage());
-        }
+    public void updateClassPath() {
+        this.addClassPathFromObject(this);
+        this.addClassPathFromObject(MinecraftClient.getInstance());
+    }
 
-        try { // add minecraft jar to classpath
-            URL url = this.getURLFromObject(MinecraftClient.getInstance());
+    private <T> void addClassPathFromObject(T object) {
+        try { // finds jar containing object's class and adds it to class path
+            URL url = this.getURLFromObject(object);
             this.addClassPathReference(url);
         } catch (URISyntaxException exception) {
             this.logger.error(exception.getMessage());
@@ -134,10 +132,15 @@ public class ConcurrentExecutor {
     }
 
     private void addClassPathReference(URL url) {
-        File jar = new File(url.getPath());
-        String path = jar.getAbsolutePath();
-        CompilerUtils.addClassPath(path);
-        this.logger.info("Added " + path + " to classpath.");
+        String jarPath = url.getPath().split("!")[0];
+        if (jarPath.startsWith("file:")) { // no weird formatting allowed
+            jarPath = jarPath.replaceFirst("file:", "");
+        }
+        if (!jarPath.endsWith("/")) {
+            jarPath = jarPath + "/";
+        }
+        CompilerUtils.addClassPath(jarPath);
+        this.logger.info("Added " + jarPath + " to class path.");
     }
 
     private <T> URL getURLFromObject(T object) throws URISyntaxException {
