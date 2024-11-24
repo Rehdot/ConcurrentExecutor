@@ -13,15 +13,13 @@ import redot.executor.util.TaskQueue;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /*
 * This class exists solely to assist
 * in writing code during runtime, so
-* authors at least somewhat don't
-* have to use intermediary mappings.
+* authors at least somewhat don't have
+* to use intermediary/official mappings.
 */
 @ExtensionMethod(Extensions.class)
 public class Helper {
@@ -49,9 +47,9 @@ public class Helper {
     }
 
     public static List<String> getOnlinePlayerNames() {
-        return getOnlinePlayers().stream().map(playerListEntry ->
-                Objects.requireNonNull(playerListEntry.getDisplayName())
-                        .getLiteralString()).collect(Collectors.toList());
+        return getOnlinePlayers().stream()
+                .map(entry -> entry.getProfile().getName())
+                .toList();
     }
 
     public static void sendMessage(final String message) {

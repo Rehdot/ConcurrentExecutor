@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class Extensions {
 
@@ -28,6 +29,10 @@ public class Extensions {
 
     public static <T> void consume(T in, Consumer<T> action) {
         action.accept(in);
+    }
+
+    public static <T, R> void apply(T in, Function<T, R> func) {
+        func.apply(in);
     }
 
 }

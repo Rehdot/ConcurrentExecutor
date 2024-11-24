@@ -2,6 +2,7 @@ package redot.executor.model;
 
 import com.google.common.collect.Sets;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.ExtensionMethod;
 import net.minecraft.client.MinecraftClient;
@@ -15,6 +16,7 @@ import redot.executor.util.Extensions;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -87,9 +89,12 @@ public class ConcurrentExecutor {
 
         this.service.submit(() -> {
             try {
-                Class<?> entrypointClass = this.compiler.loadFromJava("redot.executor.context." + className, fullClass);
+                CachedCompiler tempCompiler = this.getTempCompiler();
+                Class<?> entrypointClass = tempCompiler.loadFromJava("redot.executor.context." + className, fullClass);
                 Method executeMethod = entrypointClass.getMethod("execute");
+
                 executeMethod.invoke(null);
+                tempCompiler.close();
             } catch (Exception exception) {
                 exception.printStackTrace();
                 this.log(exception.getClass().getSimpleName() + " caught while compiling or running entrypoint:\n" + this.getStackTraceString(exception));
@@ -100,6 +105,26 @@ public class ConcurrentExecutor {
             this.redrawScreen();
         });
 
+    }
+
+    @NonNull
+    private CachedCompiler getTempCompiler() {
+        try { // reflection > new File(), source: trust me bro
+            Field sourceDirField = CachedCompiler.class.getDeclaredField("sourceDir");
+            Field classDirField = CachedCompiler.class.getDeclaredField("classDir");
+
+            sourceDirField.setAccessible(true);
+            classDirField.setAccessible(true);
+
+            File sourceDir = (File) sourceDirField.get(this.compiler);
+            File classDir = (File) classDirField.get(this.compiler);
+
+            return new CachedCompiler(sourceDir, classDir);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            this.log(exception.getClass().getSimpleName() + " caught while attempting to instantiate temporary compiler:\n" + this.getStackTraceString(exception));
+            return this.compiler;
+        }
     }
 
     private void redrawScreen() {
@@ -132,6 +157,12 @@ public class ConcurrentExecutor {
     }
 
     private void addClassPathReference(URL url) {
+        String jarPath = this.getFormattedPath(url);
+        CompilerUtils.addClassPath(jarPath);
+        this.logger.info("Added " + jarPath + " to class path.");
+    }
+
+    private String getFormattedPath(URL url) {
         String jarPath = url.getPath().split("!")[0];
         if (jarPath.startsWith("file:")) { // no weird formatting allowed
             jarPath = jarPath.replaceFirst("file:", "");
@@ -139,8 +170,7 @@ public class ConcurrentExecutor {
         if (!jarPath.endsWith("/")) {
             jarPath = jarPath + "/";
         }
-        CompilerUtils.addClassPath(jarPath);
-        this.logger.info("Added " + jarPath + " to class path.");
+        return jarPath;
     }
 
     private <T> URL getURLFromObject(T object) throws URISyntaxException {
