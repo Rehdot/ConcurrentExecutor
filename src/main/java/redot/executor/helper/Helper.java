@@ -1,6 +1,8 @@
 package redot.executor.helper;
 
+import com.mojang.brigadier.CommandDispatcher;
 import lombok.experimental.ExtensionMethod;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -11,9 +13,11 @@ import redot.executor.model.ConcurrentExecutor;
 import redot.executor.util.Extensions;
 import redot.executor.util.TaskQueue;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /*
 * This class exists solely to assist
@@ -93,6 +97,21 @@ public class Helper {
 
     public static void runTaskQueue() {
         TASK_QUEUE.runAll();
+    }
+
+    public static List<String> getActiveCommands() {
+        List<String> commands = new ArrayList<>();
+        Consumer<CommandDispatcher<?>> consumer = manager -> {
+            if (manager.isNull()) return;
+            manager.getRoot().getChildren().forEach(node -> {
+                commands.add(ClientCommandManager.literal(node.getName()).getLiteral());
+            });
+        };
+
+        ClientCommandManager.getActiveDispatcher().consume(consumer);
+        getNetworkHandler().getCommandDispatcher().consume(consumer);
+
+        return commands;
     }
 
 }

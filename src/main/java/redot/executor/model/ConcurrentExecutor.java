@@ -89,12 +89,8 @@ public class ConcurrentExecutor {
 
         this.service.submit(() -> {
             try {
-                CachedCompiler tempCompiler = this.getTempCompiler();
-                Class<?> entrypointClass = tempCompiler.loadFromJava("redot.executor.context." + className, fullClass);
-                Method executeMethod = entrypointClass.getMethod("execute");
-
-                executeMethod.invoke(null);
-                tempCompiler.close();
+                Class<?> entrypointClass = this.compiler.loadFromJava("redot.executor.context." + className, fullClass);
+                entrypointClass.getMethod("execute").invoke(null);
             } catch (Exception exception) {
                 exception.printStackTrace();
                 this.log(exception.getClass().getSimpleName() + " caught while compiling or running entrypoint:\n" + this.getStackTraceString(exception));
@@ -105,26 +101,6 @@ public class ConcurrentExecutor {
             this.redrawScreen();
         });
 
-    }
-
-    @NonNull
-    private CachedCompiler getTempCompiler() {
-        try { // reflection > new File(), source: trust me bro
-            Field sourceDirField = CachedCompiler.class.getDeclaredField("sourceDir");
-            Field classDirField = CachedCompiler.class.getDeclaredField("classDir");
-
-            sourceDirField.setAccessible(true);
-            classDirField.setAccessible(true);
-
-            File sourceDir = (File) sourceDirField.get(this.compiler);
-            File classDir = (File) classDirField.get(this.compiler);
-
-            return new CachedCompiler(sourceDir, classDir);
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            this.log(exception.getClass().getSimpleName() + " caught while attempting to instantiate temporary compiler:\n" + this.getStackTraceString(exception));
-            return this.compiler;
-        }
     }
 
     private void redrawScreen() {
