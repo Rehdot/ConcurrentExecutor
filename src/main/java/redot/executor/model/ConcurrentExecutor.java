@@ -2,7 +2,6 @@ package redot.executor.model;
 
 import com.google.common.collect.Sets;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.ExtensionMethod;
 import net.minecraft.client.MinecraftClient;
@@ -13,11 +12,8 @@ import org.slf4j.LoggerFactory;
 import redot.executor.gui.screen.ExecutorScreen;
 import redot.executor.util.Extensions;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Set;

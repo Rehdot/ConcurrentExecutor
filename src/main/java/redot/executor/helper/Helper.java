@@ -3,6 +3,9 @@ package redot.executor.helper;
 import com.mojang.brigadier.CommandDispatcher;
 import lombok.experimental.ExtensionMethod;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.MappingResolver;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -18,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /*
 * This class exists solely to assist
@@ -51,7 +55,7 @@ public class Helper {
     }
 
     public static List<String> getOnlinePlayerNames() {
-        return getOnlinePlayers().stream()
+        return getOnlinePlayers().parallelStream()
                 .map(entry -> entry.getProfile().getName())
                 .toList();
     }
@@ -72,7 +76,7 @@ public class Helper {
     }
 
     public static void sendCommand(final String command) {
-        MinecraftClient.getInstance().getNetworkHandler().optional()
+        getNetworkHandler().optional()
                 .ifPresentOrElse(
                         nh -> nh.sendChatCommand(command),
                         () -> log("NetworkHandler returned null!")
@@ -97,6 +101,12 @@ public class Helper {
 
     public static void runTaskQueue() {
         TASK_QUEUE.runAll();
+    }
+
+    public static List<String> getNearbyPlayers() {
+        return getPlayer().clientWorld.getPlayers().parallelStream()
+                .map(player -> player.getGameProfile().getName())
+                .collect(Collectors.toList());
     }
 
     public static List<String> getActiveCommands() {
