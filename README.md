@@ -2,6 +2,15 @@ Concurrent Executor
 -
 A mod allowing its users to write, compile and run code during a Minecraft runtime.
 
+---
+
+### ⚠️ Warning
+
+This project has reached its end of life. Check out [TweakSuite](https://github.com/Rehdot/TweakSuite)
+for a more robust, capable tool of this nature.
+
+---
+
 ### How It Works
 Given a String representing a class, record, enum or interface,
 this mod leverages OpenHFT's [Chronicle Runtime Compiler](https://github.com/OpenHFT/Java-Runtime-Compiler/tree/ea) to compile the user's 
